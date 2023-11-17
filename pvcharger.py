@@ -2,6 +2,7 @@ import requests
 import json
 import logging
 import os
+import time
 
 class wallbox:
     def __init__(self, **kwargs):
@@ -13,7 +14,7 @@ class wallbox:
         self.charge_power = None
         self.charge_ampere = None
 
-    def status(self):
+    def get_status(self):
         self.session = requests.Session()
         self.session.headers.update({'Accept': 'application/json'})
         response = self.session.get(f"{self.url}/api/status", verify=False)
@@ -46,7 +47,7 @@ class sonnen:
         self.battery_capacity = 0
         self.url = kwargs.get("url", None)
 
-    def status(self):
+    def get_status(self):
         self.session = requests.Session()
 #        self.session.headers.update({'Accept': 'application/json'})
         response = self.session.get(f"{self.url}/api/v2/status", verify=False)
@@ -72,81 +73,81 @@ token = "mtGKYCA3pTKH18O3rbOtXc9LQp094kb3"
 wallbox = wallbox(**{"url" : url, "sn" : sn, "token" : token})
 sonnen = sonnen(**{"url" : url_sonnen})
 
-wallbox.status()
-if wallbox.response_code == 200:
-    logger.info(f"Ampere: {wallbox.charge_ampere}A Ampere_Dict: {wallbox.ampere_dict} http_code: {wallbox.response_code}")
-else:
-    logger.error(f"Get wallbox status {wallbox.response}_code")    
+while True:
+    wallbox.get_status()
+    if wallbox.response_code == 200:
+        logger.info(f"Ampere: {wallbox.charge_ampere}A Ampere_Dict: {wallbox.ampere_dict} http_code: {wallbox.response_code}")
+    else:
+        logger.error(f"Get wallbox status {wallbox.response}_code")    
 
-#print (f"{json.dumps(wallbox.status, sort_keys=True, indent=2, separators=(',', ':'))} {wallbox.response_code}")
-sonnen.status()
-house_usage = int((sonnen.response['Consumption_W']))
-solar_power = int((sonnen.response['Production_W']))
-batterie_capacity = int((sonnen.response['BackupBuffer']))
+    #print (f"{json.dumps(wallbox.status, sort_keys=True, indent=2, separators=(',', ':'))} {wallbox.response_code}")
 
-#solar_power = 5000
-#batterie_capacity = 20
-logger.info(f"Solar Power: {solar_power}W Batterie: {batterie_capacity}%")
+    sonnen.get_status()
+    house_usage = int((sonnen.response['Consumption_W']))
+    solar_power = int((sonnen.response['Production_W']))
+    batterie_capacity = int((sonnen.response['BackupBuffer']))
 
-'''compare solar and batterie charge capacity against wallbox ampere setting'''
-for i, (A, P) in enumerate(wallbox.ampere_dict.items()):
-    if solar_power > P:
-        previous_item = A
-        if i == 4:
+    #solar_power = 5000
+    #batterie_capacity = 20
+    logger.info(f"Solar Power: {solar_power}W Batterie: {batterie_capacity}%")
+
+    '''compare solar and batterie charge capacity against wallbox ampere setting'''
+    for i, (A, P) in enumerate(wallbox.ampere_dict.items()):
+        if solar_power > P:
+            previous_item = A
+            if i == 4:
+                ampere_set = A
+                break
+            continue
+        if solar_power < P and i > 0:
+            ampere_set = previous_item
+            break
+        elif batterie_capacity > 50:
             ampere_set = A
             break
-        continue
-    if solar_power < P and i > 0:
-        ampere_set = previous_item
-        break
-    elif batterie_capacity > 50:
-        ampere_set = A
-        break
-    else: 
-        ampere_set = 0
-        break
+        else: 
+            ampere_set = 0
+            break
 
-logger.info(f"Setting Index:{i} Amphere:{ampere_set}")
+    logger.info(f"Setting Index:{i} Amphere:{ampere_set}")
 
-'''set color to Ampere in Wallbox and start or stop with frc setting'''
-"""# in color string needs to be replaced by %23"""
-if ampere_set == 0:
-    wallbox.set_attr("cid", '"%23FF4B00"')
-    if wallbox.response_code == 200:
-        logger.info(f"set color red successful - Response:{wallbox.response_code}")
-    else:
-        logger.error(f"set color red - Response:{wallbox.response}")    
+    '''set color to Ampere in Wallbox and start or stop with frc setting'''
+    """# in color string needs to be replaced by %23"""
+    if ampere_set == 0:
+        wallbox.set_attr("cid", '"%23FF4B00"')
+        if wallbox.response_code == 200:
+            logger.info(f"set color red successful - Response:{wallbox.response_code}")
+        else:
+            logger.error(f"set color red - Response:{wallbox.response}")    
 
-else:
-    wallbox.set_attr("cid", '"%2319EA15"' )
-    if wallbox.response_code == 200:
-        logger.info(f"set color green {wallbox.response_code}")
     else:
-        logger.error(f"set color green {wallbox.response}")    
-    
-'''set Ampere in Wallbox and start or stop with frc setting'''
-if ampere_set == 0 and wallbox.car_attach_status == 2 and wallbox.charge_staus != 1:
-    wallbox.set_attr("frc", 1 )
-    if wallbox.response_code == 200:
-        logger.info(f"Stop charging {wallbox.response_code}")
-    else:
-        logger.error(f"Stop charging {wallbox.response}")    
-elif ampere_set > 0 and wallbox.car_attach_status == 4:
-    wallbox.set_attr("frc", 2)
-    if wallbox.response_code == 200:
-        logger.info(f"Start charging {wallbox.response_code}")
-    else:
-        logger.error(f"Start charging {wallbox.response}")    
+        wallbox.set_attr("cid", '"%2319EA15"' )
+        if wallbox.response_code == 200:
+            logger.info(f"set color green {wallbox.response_code}")
+        else:
+            logger.error(f"set color green {wallbox.response}")    
+        
+    '''set Ampere in Wallbox and start or stop with frc setting'''
+    if ampere_set == 0 and wallbox.car_attach_status == 2 and wallbox.charge_staus != 1:
+        wallbox.set_attr("frc", 1 )
+        if wallbox.response_code == 200:
+            logger.info(f"Stop charging {wallbox.response_code}")
+        else:
+            logger.error(f"Stop charging {wallbox.response}")    
+    elif ampere_set > 0 and wallbox.car_attach_status == 4:
+        wallbox.set_attr("frc", 2)
+        if wallbox.response_code == 200:
+            logger.info(f"Start charging {wallbox.response_code}")
+        else:
+            logger.error(f"Start charging {wallbox.response}")    
 
-if wallbox.charge_ampere != ampere_set and ampere_set != 0: 
-    wallbox.set_attr("amp", ampere_set)
-    if wallbox.response_code == 200:
-        logger.info(f"Set Amphere {wallbox.response_code}")
-    else:
-        logger.error(f"Set Amphere {wallbox.response}")    
-    
+    if wallbox.charge_ampere != ampere_set and ampere_set != 0: 
+        wallbox.set_attr("amp", ampere_set)
+        if wallbox.response_code == 200:
+            logger.info(f"Set Amphere {wallbox.response_code}")
+        else:
+            logger.error(f"Set Amphere {wallbox.response}")    
+    time.sleep(10)    
 
-'''write class for sonnen'''
-'''http://192.168.88.6/api/doc.html'''
-"""Battery /api/v2/battery"""
+'''Sonnen API documentaion http://192.168.88.6/api/doc.html'''
 """attach car and read charfing power """
