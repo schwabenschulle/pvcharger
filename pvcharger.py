@@ -1,7 +1,7 @@
 import requests
 import json
 import logging
-from sys import stdout
+import os
 
 class wallbox:
     def __init__(self, **kwargs):
@@ -32,7 +32,7 @@ class wallbox:
         response = self.session.get(f'{self.url}/api/set?{attr}={value}', verify=False)
         self.response = json.loads(response.content)
         self.response_code = response.status_code
-        print (response.url)
+
     def set_attr_cloud(self, attr, value):
         self.session = requests.Session()
         self.session.headers.update({'Accept': 'application/json'})
@@ -40,32 +40,52 @@ class wallbox:
         response = self.session.get(f'https://{self.sn}.api.v3.go-e.io/api/set?{attr}={value}', verify=True)
         self.response = json.loads(response.content)
         self.response_code = response.status_code
-        print (response.url)
-        print (self.response_code)
 
+class sonnen:
+    def __init__(self, **kwargs):
+        self.battery_capacity = 0
+        self.url = kwargs.get("url", None)
+
+    def status(self):
+        self.session = requests.Session()
+#        self.session.headers.update({'Accept': 'application/json'})
+        response = self.session.get(f"{self.url}/api/v2/status", verify=False)
+        self.response = json.loads(response.content)
+        self.response_code = response.status_code
 
 '''Enable loging'''
 logging.basicConfig(level=logging.INFO)
-consoleHandler = logging.StreamHandler(stdout) #set streamhandler to stdout
-formatter = logging.Formatter(fmt='%(asctime)s %(levelname)-8s %(message)s',datefmt='%Y-%m-%d %H:%M:%S')
-consoleHandler.setFormatter(formatter)
+logfh  = logging.FileHandler(os.path.join(f'/var/log/containers','main.log'))
 logger = logging.getLogger('Main')
-logger.addHandler(consoleHandler)
-#logger.setLevel(logging.INFO)
+logger.addHandler(logfh)
+logger.setLevel(logging.INFO)
+formatter = logging.Formatter(fmt='%(asctime)s %(levelname)-8s %(message)s',datefmt='%Y-%m-%d %H:%M:%S')
+logfh.setFormatter(formatter)
+
 
 url = "http://192.168.88.18"
+url_sonnen = "http://192.168.88.6"
 sn = "068673"
 token = "mtGKYCA3pTKH18O3rbOtXc9LQp094kb3"
+
+'''iniate classes'''
 wallbox = wallbox(**{"url" : url, "sn" : sn, "token" : token})
+sonnen = sonnen(**{"url" : url_sonnen})
+
 wallbox.status()
 if wallbox.response_code == 200:
     logger.info(f"Ampere: {wallbox.charge_ampere}A Ampere_Dict: {wallbox.ampere_dict} http_code: {wallbox.response_code}")
 else:
-    logger.error(f"Get wallbox status {self.response}_code")    
+    logger.error(f"Get wallbox status {wallbox.response}_code")    
 
-print (f"{json.dumps(wallbox.status, sort_keys=True, indent=2, separators=(',', ':'))} {wallbox.response_code}")
-solar_power = 1000
-batterie_capacity = 60
+#print (f"{json.dumps(wallbox.status, sort_keys=True, indent=2, separators=(',', ':'))} {wallbox.response_code}")
+sonnen.status()
+house_usage = int((sonnen.response['Consumption_W']))
+solar_power = int((sonnen.response['Production_W']))
+batterie_capacity = int((sonnen.response['BackupBuffer']))
+
+#solar_power = 5000
+#batterie_capacity = 20
 logger.info(f"Solar Power: {solar_power}W Batterie: {batterie_capacity}%")
 
 '''compare solar and batterie charge capacity against wallbox ampere setting'''
@@ -127,3 +147,6 @@ if wallbox.charge_ampere != ampere_set and ampere_set != 0:
     
 
 '''write class for sonnen'''
+'''http://192.168.88.6/api/doc.html'''
+"""Battery /api/v2/battery"""
+"""attach car and read charfing power """
