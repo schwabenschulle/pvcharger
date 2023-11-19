@@ -52,25 +52,21 @@ def pv_surplus_calc(sonnen, wallbox):
         return solar_power
 
 if __name__ == '__main__':
-    url = "http://192.168.88.18"
-    url_sonnen = "http://192.168.88.6"
-    sn = "068673"
-    token = "mtGKYCA3pTKH18O3rbOtXc9LQp094kb3"
+    url_wallbox = os.environ['url_wallbox']
+    url_sonnen = os.environ['url_sonnen']
+
+    '''sn and token are needed to use cloud API. Currently not used in this code'''
+    sn = ""
+    token = ""
 
     '''iniate class for wallbox and Sonnen Battery'''
-    wallbox = goe.wallbox(**{"url" : url, "sn" : sn, "token" : token})
+    wallbox = goe.wallbox(**{"url" : url_wallbox, "sn" : sn, "token" : token})
     sonnen = solar.sonnen(**{"url" : url_sonnen})
 
     count = 0
     while True:
         count = count + 1
         solar_power_list = [] 
-        wallbox.get_status()
-        if wallbox.response_code == 200:
-            logger.info(f"Ampere: {wallbox.charge_ampere}A Ampere_Dict: {wallbox.ampere_dict} http_code: {wallbox.response_code}")
-        else:
-            logger.error(f"Get wallbox status {wallbox.response}_code")    
-#        print (f"{json.dumps(wallbox.status, sort_keys=True, indent=2, separators=(',', ':'))} {wallbox.response_code}")
 
         '''Pull infos from Sonnen battery API and preserv battery capacity in a varaible'''
         '''Sonnen API documentaion http://{IP}/api/doc.html'''
@@ -79,6 +75,7 @@ if __name__ == '__main__':
 
         '''Calculate PV Surplus - Logic: PV Surplus is Solar-Inputv - house_usage - charge power  '''
         solar_power = pv_surplus_calc(sonnen, wallbox)
+
         '''add caculated solar_power to a list which is after 15 loop interactions get used to calclulate the average'''
         solar_power_list.append(solar_power)
         logging.info(f"Solar_Surplus:{solar_power} Charge_Power: {wallbox.charge_power}")
@@ -86,6 +83,13 @@ if __name__ == '__main__':
         '''calulate average solar_power surplus and decide wallbox charge power setting under consideration of battery capacity'''
         if count == 15:
             count = 0
+            wallbox.get_status()
+            if wallbox.response_code == 200:
+                logger.info(f"Ampere: {wallbox.charge_ampere}A Ampere_Dict: {wallbox.ampere_dict} http_code: {wallbox.response_code}")
+            else:
+                logger.error(f"Get wallbox status {wallbox.response}_code")    
+    #        print (f"{json.dumps(wallbox.status, sort_keys=True, indent=2, separators=(',', ':'))} {wallbox.response_code}")
+
             solar_power_average = sum(solar_power_list) / len(solar_power_list)
             solar_power_list = []
             logger.info(f"Solar Power Average: {solar_power_average}W Battery Capacity {batterie_capacity}%")
@@ -101,12 +105,14 @@ if __name__ == '__main__':
                 
             '''set Ampere in Wallbox and start or stop with frc setting'''
             if ampere_set == 0 and wallbox.car_attach_status == 2 and wallbox.charge_staus != 1:
+                wallbox.charge_power = 0
                 wallbox.set_attr("frc", 1 )
                 if wallbox.response_code == 200:
                     logger.info(f"Stop charging {wallbox.response_code}")
                 else:
                     logger.error(f"Stop charging {wallbox.response}")    
             elif ampere_set > 0 and wallbox.car_attach_status == 4:
+                wallbox.charge_power = wallbox.ampere_dict[ampere_set]
                 wallbox.set_attr("frc", 2)
                 if wallbox.response_code == 200:
                     logger.info(f"Start charging {wallbox.response_code}")

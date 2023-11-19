@@ -8,7 +8,7 @@ class wallbox:
         self.url = kwargs.get("url", None)
         self.sn = kwargs.get("sn", None)
         self.token = kwargs.get("token", None)
-        self.charge_power = None
+        self.charge_power = 0
         self.charge_ampere = None
 
     def get_status(self):
@@ -20,10 +20,10 @@ class wallbox:
         self.charge_ampere = self.status['amp']
         self.car_attach_status = self.status['car']
         self.charge_staus = self.status['frc']
-        self.charge_power = self.status['tpa']
         self.ampere_dict = {}
         for clp_item in self.status['clp']:
             self.ampere_dict[clp_item] = (230*clp_item)*2
+
 
     def set_attr(self, attr, value):
         self.session = requests.Session()
