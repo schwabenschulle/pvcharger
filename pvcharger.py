@@ -65,67 +65,71 @@ if __name__ == '__main__':
 
     count = 0
     while True:
-        count = count + 1
-        solar_power_list = [] 
+        try:
+            count = count + 1
+            solar_power_list = [] 
 
-        '''Pull infos from Sonnen battery API and preserv battery capacity in a varaible'''
-        '''Sonnen API documentaion http://{IP}/api/doc.html'''
-        sonnen.get_status()
-        batterie_capacity = int((sonnen.response['USOC']))
+            '''Pull infos from Sonnen battery API and preserv battery capacity in a varaible'''
+            '''Sonnen API documentaion http://{IP}/api/doc.html'''
+            sonnen.get_status()
+            batterie_capacity = int((sonnen.response['USOC']))
 
-        '''Calculate PV Surplus - Logic: PV Surplus is Solar-Inputv - house_usage - charge power  '''
-        solar_power = pv_surplus_calc(sonnen, wallbox)
+            '''Calculate PV Surplus - Logic: PV Surplus is Solar-Inputv - house_usage - charge power  '''
+            solar_power = pv_surplus_calc(sonnen, wallbox)
 
-        '''add caculated solar_power to a list which is after 15 loop interactions get used to calclulate the average'''
-        solar_power_list.append(solar_power)
-        logging.info(f"Solar_Surplus:{solar_power} Charge_Power: {wallbox.charge_power}")
+            '''add caculated solar_power to a list which is after 15 loop interactions get used to calclulate the average'''
+            solar_power_list.append(solar_power)
+            logging.info(f"Solar_Surplus:{solar_power} Charge_Power: {wallbox.charge_power}")
 
-        '''calulate average solar_power surplus and decide wallbox charge power setting under consideration of battery capacity'''
-        if count == 15:
-            count = 0
-            wallbox.get_status()
-            if wallbox.response_code == 200:
-                logger.info(f"Ampere: {wallbox.charge_ampere}A Ampere_Dict: {wallbox.ampere_dict} http_code: {wallbox.response_code}")
-            else:
-                logger.error(f"Get wallbox status {wallbox.response}_code")    
-    #        print (f"{json.dumps(wallbox.status, sort_keys=True, indent=2, separators=(',', ':'))} {wallbox.response_code}")
-
-            solar_power_average = sum(solar_power_list) / len(solar_power_list)
-            solar_power_list = []
-            logger.info(f"Solar Power Average: {solar_power_average}W Battery Capacity {batterie_capacity}%")
-            ampere_set, i = ampere_set_check(wallbox.ampere_dict, solar_power_average, batterie_capacity)
-            logger.info(f"Setting Index:{i} Amphere:{ampere_set}")
-
-            '''set color in Wallbox amber for not enough charging energy and green for charging possible'''
-            """# in color string needs to be replaced by %23"""
-            if ampere_set == 0:
-                set_color('"%23FF4B00"')
-            else:
-                set_color('"%2319EA15"')
-                
-            '''set Ampere in Wallbox and start or stop with frc setting'''
-            if ampere_set == 0 and wallbox.car_attach_status == 2 and wallbox.charge_staus != 1:
-                wallbox.charge_power = 0
-                wallbox.set_attr("frc", 1 )
+            '''calulate average solar_power surplus and decide wallbox charge power setting under consideration of battery capacity'''
+            if count == 15:
+                count = 0
+                wallbox.get_status()
                 if wallbox.response_code == 200:
-                    logger.info(f"Stop charging {wallbox.response_code}")
+                    logger.info(f"Ampere: {wallbox.charge_ampere}A Ampere_Dict: {wallbox.ampere_dict} http_code: {wallbox.response_code}")
                 else:
-                    logger.error(f"Stop charging {wallbox.response}")    
-            elif ampere_set > 0 and wallbox.car_attach_status == 4:
-                wallbox.charge_power = wallbox.ampere_dict[ampere_set]
-                wallbox.set_attr("frc", 2)
-                if wallbox.response_code == 200:
-                    logger.info(f"Start charging {wallbox.response_code}")
-                else:
-                    logger.error(f"Start charging {wallbox.response}")    
+                    logger.error(f"Get wallbox status {wallbox.response}_code")    
+        #        print (f"{json.dumps(wallbox.status, sort_keys=True, indent=2, separators=(',', ':'))} {wallbox.response_code}")
 
-            if wallbox.charge_ampere != ampere_set and ampere_set != 0: 
-                wallbox.set_attr("amp", ampere_set)
-                if wallbox.response_code == 200:
-                    logger.info(f"Set Amphere {wallbox.response_code}")
+                solar_power_average = sum(solar_power_list) / len(solar_power_list)
+                solar_power_list = []
+                logger.info(f"Solar Power Average: {solar_power_average}W Battery Capacity {batterie_capacity}%")
+                ampere_set, i = ampere_set_check(wallbox.ampere_dict, solar_power_average, batterie_capacity)
+                logger.info(f"Setting Index:{i} Amphere:{ampere_set}")
+
+                '''set color in Wallbox amber for not enough charging energy and green for charging possible'''
+                """# in color string needs to be replaced by %23"""
+                if ampere_set == 0:
+                    set_color('"%23FF4B00"')
                 else:
-                    logger.error(f"Set Amphere {wallbox.response}")    
-        time.sleep(60)    
+                    set_color('"%2319EA15"')
+                    
+                '''set Ampere in Wallbox and start or stop with frc setting'''
+                if ampere_set == 0 and wallbox.car_attach_status == 2 and wallbox.charge_staus != 1:
+                    wallbox.charge_power = 0
+                    wallbox.set_attr("frc", 1 )
+                    if wallbox.response_code == 200:
+                        logger.info(f"Stop charging {wallbox.response_code}")
+                    else:
+                        logger.error(f"Stop charging {wallbox.response}")    
+                elif ampere_set > 0 and wallbox.car_attach_status == 4:
+                    wallbox.charge_power = wallbox.ampere_dict[ampere_set]
+                    wallbox.set_attr("frc", 2)
+                    if wallbox.response_code == 200:
+                        logger.info(f"Start charging {wallbox.response_code}")
+                    else:
+                        logger.error(f"Start charging {wallbox.response}")    
+
+                if wallbox.charge_ampere != ampere_set and ampere_set != 0: 
+                    wallbox.set_attr("amp", ampere_set)
+                    if wallbox.response_code == 200:
+                        logger.info(f"Set Amphere {wallbox.response_code}")
+                    else:
+                        logger.error(f"Set Amphere {wallbox.response}")    
+            time.sleep(60)    
+        except Exception as e:
+            logging.error('Fatal')
+            logging.error(traceback.format_exc())
 
 
 """attach car and read charfing power """
