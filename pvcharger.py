@@ -44,7 +44,12 @@ def set_color(color):
     else:
         logger.error(f"set color {color} - Response:{wallbox.response}")    
 
-    
+def pv_surplus_calc(sonnen, wallbox):
+        if wallbox.charge_staus == 2:   
+            solar_power = int((sonnen.response['Production_W'])) - (int((sonnen.response['Consumption_W'])) - wallbox.charge_power)
+        else:
+            solar_power = int((sonnen.response['Production_W']))
+        return solar_power
 
 if __name__ == '__main__':
     url = "http://192.168.88.18"
@@ -55,6 +60,7 @@ if __name__ == '__main__':
     '''iniate classes'''
     wallbox = goe.wallbox(**{"url" : url, "sn" : sn, "token" : token})
     sonnen = solar.sonnen(**{"url" : url_sonnen})
+
     count = 0
     while True:
         count = count + 1
@@ -64,29 +70,29 @@ if __name__ == '__main__':
             logger.info(f"Ampere: {wallbox.charge_ampere}A Ampere_Dict: {wallbox.ampere_dict} http_code: {wallbox.response_code}")
         else:
             logger.error(f"Get wallbox status {wallbox.response}_code")    
+#        print (f"{json.dumps(wallbox.status, sort_keys=True, indent=2, separators=(',', ':'))} {wallbox.response_code}")
 
-        #print (f"{json.dumps(wallbox.status, sort_keys=True, indent=2, separators=(',', ':'))} {wallbox.response_code}")
-
+        '''Pull infos from Sonnen battery API and preserv battery capacity in a varaible'''
+        '''Sonnen API documentaion http://{IP}/api/doc.html'''
         sonnen.get_status()
-        print (sonnen.response)
-        house_usage = int((sonnen.response['Consumption_W']))
-        solar_power = int((sonnen.response['Production_W']))
         batterie_capacity = int((sonnen.response['USOC']))
-        solar_power_list.append(solar_power)
-        #solar_power = 5000
-        #batterie_capacity = 20
-        logger.info(f"Solar Power: {solar_power}W Batterie: {batterie_capacity}% Cunsption_cur: {house_usage}W")
 
-        '''compare solar and batterie charge capacity against wallbox ampere setting'''
+        '''Calculate PV Surplus - Logic: PV Surplus is Solar-Inputv - house_usage - charge power  '''
+        solar_power = pv_surplus_calc(sonnen, wallbox)
+        '''add caculated solar_power to a list which is after 15 loop interactions get used to calclulate the average'''
+        solar_power_list.append(solar_power)
+        logging.info(f"Solar_Surplus:{solar_power} Charge_Power: {wallbox.charge_power}")
+
+        '''calulate average solar_power surplus and decide wallbox charge power setting under consideration of battery capacity'''
         if count == 15:
             count = 0
             solar_power_average = sum(solar_power_list) / len(solar_power_list)
             solar_power_list = []
-            logger.info(f"Solar Power Averafe: {solar_power_average}W")
+            logger.info(f"Solar Power Average: {solar_power_average}W")
             ampere_set, i = ampere_set_check(wallbox.ampere_dict, solar_power_average, batterie_capacity)
             logger.info(f"Setting Index:{i} Amphere:{ampere_set}")
 
-            '''set color to Ampere in Wallbox and start or stop with frc setting'''
+            '''set color in Wallbox amber for not enough charging energy and green for charging possible'''
             """# in color string needs to be replaced by %23"""
             if ampere_set == 0:
                 set_color('"%23FF4B00"')
@@ -113,7 +119,7 @@ if __name__ == '__main__':
                     logger.info(f"Set Amphere {wallbox.response_code}")
                 else:
                     logger.error(f"Set Amphere {wallbox.response}")    
-        time.sleep(10)    
+        time.sleep(60)    
 
-'''Sonnen API documentaion http://192.168.88.6/api/doc.html'''
+
 """attach car and read charfing power """
