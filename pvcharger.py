@@ -57,7 +57,7 @@ if __name__ == '__main__':
     sn = "068673"
     token = "mtGKYCA3pTKH18O3rbOtXc9LQp094kb3"
 
-    '''iniate classes'''
+    '''iniate class for wallbox and Sonnen Battery'''
     wallbox = goe.wallbox(**{"url" : url, "sn" : sn, "token" : token})
     sonnen = solar.sonnen(**{"url" : url_sonnen})
 
@@ -88,7 +88,7 @@ if __name__ == '__main__':
             count = 0
             solar_power_average = sum(solar_power_list) / len(solar_power_list)
             solar_power_list = []
-            logger.info(f"Solar Power Average: {solar_power_average}W")
+            logger.info(f"Solar Power Average: {solar_power_average}W Battery Capacity {batterie_capacity}%")
             ampere_set, i = ampere_set_check(wallbox.ampere_dict, solar_power_average, batterie_capacity)
             logger.info(f"Setting Index:{i} Amphere:{ampere_set}")
 
