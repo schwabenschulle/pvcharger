@@ -33,4 +33,7 @@ A[Synlogy Docker Container] -->D("Input Data
 D --> E("Caluclate PV Surplus and set Wallbox Charging
          Ampere for next 15 min
         PV Surplus = PV Produnction - House consumption")
+E --> F{"PV Surplus > Charge min Power"}
+F -->|no| G{"If battery > 50%"}
+
 ```
