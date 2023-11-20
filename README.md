@@ -41,6 +41,7 @@ G -->|yes| I["wallbox start charging
               set 6A charge power
               set LED color to green"]
 F -->|yes| J["Set best Ampere set depending
-              on average PV Surplus in last 15 min"]
+              on average PV Surplus in last 15 min
+              Set LED color to green"]
 
 ```
