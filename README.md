@@ -18,3 +18,32 @@ PV Power Monitoring: The script checks the PV power output every minute.
 Calculating Surplus: By subtracting current household usage from the PV output, it calculates the surplus power.
 Loop Interaction: After 15 iterations, it calculates the average PV surplus.
 Adjusting Charge Power: Based on the average surplus and battery capacity, it adjusts the charge power of the go-eCharger wallbox and LEd color to visualize the charge capability.
+
+```mermaid
+graph TD
+A[Synlogy Docker Container] -->|API| B[Sonnen API]
+B[Sonnen API] -.->|PV data
+                   every min| A[Synlogy Docker Container]
+A[Synlogy Docker Container] -->|API| C[Go-echarger API]
+C[Go-echarger API] -.->|wallbox state
+                         every 15min| A[Synlogy Docker Container]
+
+A[Synlogy Docker Container] -->D("Input Data
+                PV_Production
+                PV_Concumption
+                Wallbox charging state
+                Wallbox Ampere set")
+
+D --> E("Caluclate PV Surplus and set Wallbox Charging
+         Ampere for next 15 min"
+        PV Surplus = PV Produnction - House consumption)
+E --> F{"PV Surplus > Charge min Power"}
+F -->|no| G{"If battery > 50%"}
+G --> |no| H["wallbox stop charging
+             set LED color to red"]
+G -->|yes| I["wallbox start charging
+              set 6A charge power
+              set LED color to green"]
+F -->|yes| J["Set best Ampere set depending
+              on average PV Surplus in last 15 min"]
+```
