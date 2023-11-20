@@ -127,7 +127,7 @@ if __name__ == '__main__':
                         logger.info(f"Set Amphere {wallbox.response_code}")
                     else:
                         logger.error(f"Set Amphere {wallbox.response}")    
-            time.sleep(1)    
+            time.sleep(60)    
         except Exception as e:
             logging.error('Fatal')
 
