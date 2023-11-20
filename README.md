@@ -22,6 +22,5 @@ Adjusting Charge Power: Based on the average surplus and battery capacity, it ad
 ```mermaid
 graph TD
 A[Synlogy Docker Container] -->|API| B[Sonnen API]
-B[Sonnen API] -.->|PV data
-                   every min| A[Synlogy Docker Container]
+B[Sonnen API] -.->|PV data every min| A[Synlogy Docker Container]
 ```
