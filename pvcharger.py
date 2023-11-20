@@ -79,7 +79,7 @@ if __name__ == '__main__':
 
             '''add caculated solar_power to a list which is after 15 loop interactions get used to calclulate the average'''
             solar_power_list.append(solar_power)
-            logging.info(f"Solar_Surplus:{solar_power} Charge_Power: {wallbox.charge_power}")
+            logger.info(f"Solar_Surplus:{solar_power} Charge_Power: {wallbox.charge_power}")
 
             '''calulate average solar_power surplus and decide wallbox charge power setting under consideration of battery capacity'''
             if count == 15:
