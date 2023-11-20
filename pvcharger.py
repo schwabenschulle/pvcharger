@@ -5,6 +5,7 @@ import os
 import time
 import lib.goecharger as goe
 import lib.sonnen as solar
+import lib.openhab as ohab
 
 
 '''Enable loging'''
@@ -54,6 +55,7 @@ def pv_surplus_calc(sonnen, wallbox):
 if __name__ == '__main__':
     url_wallbox = os.environ['url_wallbox']
     url_sonnen = os.environ['url_sonnen']
+    url_openhab = os.environ["url_openhab"]
 
     '''sn and token are needed to use cloud API. Currently not used in this code'''
     sn = ""
@@ -62,13 +64,19 @@ if __name__ == '__main__':
     '''iniate class for wallbox and Sonnen Battery'''
     wallbox = goe.wallbox(**{"url" : url_wallbox, "sn" : sn, "token" : token})
     sonnen = solar.sonnen(**{"url" : url_sonnen})
+    openhab = ohab.openhab(**{"url" : url_openhab})
     
     solar_power_list = [] 
     count = 0
     while True:
         try:
-            count = count + 1
+            openhab.get_items("Wallbox")
+            if openhab.response['state'] == OFF:
+                logger.info("Automation Admin disabled")
+                time.sleep(60)
+                continue
 
+            count = count + 1
             '''Pull infos from Sonnen battery API and preserv battery capacity in a varaible'''
             '''Sonnen API documentaion http://{IP}/api/doc.html'''
             sonnen.get_status()
