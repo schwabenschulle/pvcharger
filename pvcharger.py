@@ -73,7 +73,13 @@ if __name__ == '__main__':
             '''Sonnen API documentaion http://{IP}/api/doc.html'''
             sonnen.get_status()
             batterie_capacity = int((sonnen.response['USOC']))
-
+            wallbox.get_attr('frc')
+            wallbox.response = json.loads(wallbox.response.content)
+            wallbox.charge_staus = wallbox.response['frc'] 
+            if wallbox.charge_staus == 2:
+                wallbox.charge_power = wallbox.ampere_dict[ampere_set]
+            else:
+                wallbox.charge_power = 0
             '''Calculate PV Surplus - Logic: PV Surplus is Solar-Inputv - house_usage - charge power  '''
             solar_power = pv_surplus_calc(sonnen, wallbox)
 
@@ -119,8 +125,7 @@ if __name__ == '__main__':
                         logger.info(f"Start charging {wallbox.response_code}")
                     else:
                         logger.error(f"Start charging {wallbox.response}")    
-                if wallbox.charge_staus == 2:
-                    wallbox.charge_power = wallbox.ampere_dict[ampere_set]
+
                 if wallbox.charge_ampere != ampere_set and ampere_set != 0: 
                     wallbox.set_attr("amp", ampere_set)
                     if wallbox.response_code == 200:

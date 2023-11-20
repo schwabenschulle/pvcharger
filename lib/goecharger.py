@@ -1,6 +1,7 @@
 import requests
 import json
 
+'''https://github.com/goecharger/go-eCharger-API-v2'''
 class wallbox:
     def __init__(self, **kwargs):
         self.charge_staus = False
@@ -23,6 +24,11 @@ class wallbox:
         self.ampere_dict = {}
         for clp_item in self.status['clp']:
             self.ampere_dict[clp_item] = (230*clp_item)*2
+
+    def get_attr(self, attr):
+        self.session = requests.Session()
+        self.session.headers.update({'Accept': 'application/json'})
+        self.response = self.session.get(f"{self.url}/api/status?filter={attr}", verify=False)
 
 
     def set_attr(self, attr, value):
