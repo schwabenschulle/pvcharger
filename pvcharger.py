@@ -71,11 +71,10 @@ if __name__ == '__main__':
     while True:
         try:
             openhab.get_items("Wallbox")
-            if openhab.response['state'] == OFF:
+            if openhab.response['state'] == "OFF":
                 logger.info("Automation Admin disabled")
                 time.sleep(60)
                 continue
-
             count = count + 1
             '''Pull infos from Sonnen battery API and preserv battery capacity in a varaible'''
             '''Sonnen API documentaion http://{IP}/api/doc.html'''
