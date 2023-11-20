@@ -36,7 +36,6 @@ D --> E("Caluclate PV Surplus and set Wallbox Charging
 E --> F{"PV Surplus > Charge min Power"}
 F -->|no| G{"If battery > 50%"}
 E --> F{"PV Surplus > Charge min Power"}
-F -->|no| G{"If battery > 50%"}
 G --> |no| H["wallbox stop charging
              set LED color to red"]
 G -->|yes| I["wallbox start charging
