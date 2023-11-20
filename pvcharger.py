@@ -48,7 +48,7 @@ def pv_surplus_calc(sonnen, wallbox):
         if wallbox.charge_staus == 2:   
             solar_power = int((sonnen.response['Production_W'])) - (int((sonnen.response['Consumption_W'])) - wallbox.charge_power)
         else:
-            solar_power = int((sonnen.response['Production_W']))
+            solar_power = int((sonnen.response['Production_W'])) - int(sonnen.response['Consumption_W'])
         return solar_power
 
 if __name__ == '__main__':
