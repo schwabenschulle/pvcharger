@@ -62,12 +62,12 @@ if __name__ == '__main__':
     '''iniate class for wallbox and Sonnen Battery'''
     wallbox = goe.wallbox(**{"url" : url_wallbox, "sn" : sn, "token" : token})
     sonnen = solar.sonnen(**{"url" : url_sonnen})
-
+    
+    solar_power_list = [] 
     count = 0
     while True:
         try:
             count = count + 1
-            solar_power_list = [] 
 
             '''Pull infos from Sonnen battery API and preserv battery capacity in a varaible'''
             '''Sonnen API documentaion http://{IP}/api/doc.html'''
@@ -119,17 +119,17 @@ if __name__ == '__main__':
                         logger.info(f"Start charging {wallbox.response_code}")
                     else:
                         logger.error(f"Start charging {wallbox.response}")    
-
+                if wallbox.charge_staus == 2:
+                    wallbox.charge_power = wallbox.ampere_dict[ampere_set]
                 if wallbox.charge_ampere != ampere_set and ampere_set != 0: 
                     wallbox.set_attr("amp", ampere_set)
                     if wallbox.response_code == 200:
                         logger.info(f"Set Amphere {wallbox.response_code}")
                     else:
                         logger.error(f"Set Amphere {wallbox.response}")    
-            time.sleep(60)    
+            time.sleep(1)    
         except Exception as e:
             logging.error('Fatal')
-            logging.error(traceback.format_exc())
 
 
 """attach car and read charfing power """
