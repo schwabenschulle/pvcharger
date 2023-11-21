@@ -35,9 +35,9 @@ K[openhab API] -.->|Wallbox Automation Item ON/OFF| D
 C[Go-echarger API] -.->|wallbox state every 15min| D
 D --> L{"Wallbox Automation
           ON or OFF"}
-L -->|ON| M["wait 60 seconds"]
+L -->|OFF| M["wait 60 seconds"]
 M --> A[Synology Docker Container]
-L -->|OFF| E("Caluclate PV Surplus and set Wallbox Charging
+L -->|ON| E("Caluclate PV Surplus and set Wallbox Charging
          Ampere for next 15 min
         PV Surplus = PV Produnction - House consumption")
 E --> F{"PV Surplus > Charge min Power"}
