@@ -25,11 +25,14 @@ A[Synology Docker Container] -->|API| B[Sonnen API]
 B[Sonnen API] -.->|PV data every min| A[Synology Docker Container]
 A[Synology Docker Container] -->|API| C[Go-echarger API]
 C[Go-echarger API] -.->|wallbox state every 15min| A[Synology Docker Container]
+A[Synology Docker Container] -->|API| K[openhab API]
+K[openhab API] -.->|Wallbox Automation Item ON/OFF| A[Synology Docker Container]
 A[Synology Docker Container] -->D("Input Data
                 PV_Production
                 PV_Concumption
                 Wallbox charging state
-                Wallbox Ampere set")
+                Wallbox Ampere set
+                Wallbox Automation Status")
 D --> E("Caluclate PV Surplus and set Wallbox Charging
          Ampere for next 15 min
         PV Surplus = PV Produnction - House consumption")
