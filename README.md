@@ -52,3 +52,33 @@ F -->|yes| J["Set best Ampere set depending
               Set LED color to green"]
 
 ```
+
+# Start Docker Container:
+
+Open the Docker application on your Synology NAS.
+Navigate to the 'Image' tab.
+Select the option to add an image from a URL.
+Download the Container:
+
+In the URL field, enter schwabenschulle/pvcharger. This should allow you to download the container from DockerHub.
+![image](https://github.com/schwabenschulle/pvcharger/assets/39119520/32153408-c761-4283-8d62-6560d4f8e6c7)
+
+Container Configuration:
+
+Once the container is downloaded, click 'Start' to initiate the container setup.
+You will need to adjust the Volume and Environment Variables as part of the setup.
+
+Set Volume
+You need to mount a host folder to /var/log/containers
+![image](https://github.com/schwabenschulle/pvcharger/assets/39119520/5bf8ec5b-cce4-4295-87b3-d4d724307e6e)
+
+Set Environment Variables:
+
+In the environment variables section, you need to add the URLs for your wallbox, Sonnen battery, and OpenHAB. These URLs are essential for the container to communicate with your devices.
+
+![image](https://github.com/schwabenschulle/pvcharger/assets/39119520/88d51371-a605-4d9a-b63f-3ce73ae18309)
+
+# Verify Successful Start:
+After setting up the Docker container, you can confirm that it has started successfully by opening the 'Detail' tab in the Docker application.
+Within the 'Detail' tab, click on 'Protocol'. This should display logs or other information indicating the operational status of your Docker container.
+![image](https://github.com/schwabenschulle/pvcharger/assets/39119520/421cd49c-0b5c-479a-a1f9-dcf1f0da21cf)
