@@ -72,7 +72,8 @@ if __name__ == '__main__':
         try:
             openhab.get_items("Wallbox")
             if openhab.response['state'] == "OFF":
-                logger.info("Automation Admin disabled")
+                logger.info("PV Surplus Automation Admin disabled")
+                set_color('"%2319EA15"')
                 time.sleep(60)
                 continue
             count = count + 1
