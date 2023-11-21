@@ -33,7 +33,8 @@ A[Synology Docker Container] -->D("Input Data
                 Wallbox charging state
                 Wallbox Ampere set
                 Wallbox Automation Status")
-D --> L{Wallbox Automation ON or OFF}
+D --> L{"Wallbox Automation
+          ON or OFF"}
 D --> E("Caluclate PV Surplus and set Wallbox Charging
          Ampere for next 15 min
         PV Surplus = PV Produnction - House consumption")
