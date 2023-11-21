@@ -22,17 +22,17 @@ Adjusting Charge Power: Based on the average surplus and battery capacity, it ad
 ```mermaid
 graph TD
 A[Synology Docker Container] -->|API| B[Sonnen API]
-B[Sonnen API] -.->|PV data every min| A[Synology Docker Container]
+
 A[Synology Docker Container] -->|API| C[Go-echarger API]
-C[Go-echarger API] -.->|wallbox state every 15min| A[Synology Docker Container]
 A[Synology Docker Container] -->|API| K[openhab API]
-K[openhab API] -.->|Wallbox Automation Item ON/OFF| A[Synology Docker Container]
-A[Synology Docker Container] -->D("Input Data
+B[Sonnen API] -.->|PV data every min|D("Input Data
                 PV_Production
                 PV_Concumption
                 Wallbox charging state
                 Wallbox Ampere set
                 Wallbox Automation Status")
+K[openhab API] -.->|Wallbox Automation Item ON/OFF| D
+C[Go-echarger API] -.->|wallbox state every 15min| D
 D --> L{"Wallbox Automation
           ON or OFF"}
 L -->|ON| M["wait 60 seconds"]
