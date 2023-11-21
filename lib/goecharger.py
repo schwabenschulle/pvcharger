@@ -22,7 +22,8 @@ class wallbox:
         self.car_attach_status = self.status['car']
         self.charge_staus = self.status['frc']
         self.ampere_dict = {}
-        for clp_item in self.status['clp']:
+        ampere_list_clp = [6,7,8,9,10,11,12,13,14,15,16]
+        for clp_item in ampere_list_clp:
             self.ampere_dict[clp_item] = (230*clp_item)*2
 
     def get_attr(self, attr):
