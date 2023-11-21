@@ -80,5 +80,5 @@ In the environment variables section, you need to add the URLs for your wallbox,
 
 # Verify Successful Start:
 After setting up the Docker container, you can confirm that it has started successfully by opening the 'Detail' tab in the Docker application.
-Within the 'Detail' tab, click on 'Protocol'. This should display logs or other information indicating the operational status of your Docker container.
+Within the 'Detail' tab, click on 'Protocol'. This should display logs.
 ![image](https://github.com/schwabenschulle/pvcharger/assets/39119520/421cd49c-0b5c-479a-a1f9-dcf1f0da21cf)
