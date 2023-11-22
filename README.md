@@ -76,6 +76,11 @@ Set Environment Variables:
 
 In the environment variables section, you need to add the URLs for your wallbox, Sonnen battery, and OpenHAB. These URLs are essential for the container to communicate with your devices.
 
+e.g.
+url_wallbox = "http://192.168.8.18"
+url_sonnen = "http://192.168.8.6"
+url_openhab = "http://192.168.8.42"
+
 ![image](https://github.com/schwabenschulle/pvcharger/assets/39119520/88d51371-a605-4d9a-b63f-3ce73ae18309)
 
 # Verify Successful Start:
