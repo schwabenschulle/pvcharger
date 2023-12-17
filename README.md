@@ -52,6 +52,11 @@ F -->|yes| J["Set best Ampere set depending
               Set LED color to green"]
 
 ```
+# Build Image (optional)
+acme@nadine-PC:/mnt/c/Users/nadine/Documents/Container$ 
+docker build --no-cache -t pvcharger:RC17 .
+docker image tag pvcharger:RC17 schwabenschulle/pvcharger:1.1
+docker push schwabenschulle/pvcharger:1.1
 
 # Start Docker Container:
 
