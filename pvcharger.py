@@ -22,7 +22,7 @@ def ampere_set_check(ampere_dict, solar_power_average, batterie_capacity):
     for i, (A, P) in enumerate(ampere_dict.items()):
         if solar_power_average > P:
             previous_item = A
-            if i == 4:
+            if i == 10:
                 ampere_set = A
                 break
             continue
@@ -72,10 +72,10 @@ if __name__ == '__main__':
         try:
             openhab.get_items("Wallbox")
             if openhab.response['state'] == "OFF":
-                logger.info("PV Surplus Automation Admin disabled")
-                set_color('"%2319EA15"')
+                logger.info("Automation Admin disabled")
                 time.sleep(60)
                 continue
+
             count = count + 1
             '''Pull infos from Sonnen battery API and preserv battery capacity in a varaible'''
             '''Sonnen API documentaion http://{IP}/api/doc.html'''
