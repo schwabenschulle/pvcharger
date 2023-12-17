@@ -1,6 +1,7 @@
 import requests
 import json
 import logging
+from logging.handlers import RotatingFileHandler
 import os
 import time
 import lib.goecharger as goe
@@ -10,14 +11,15 @@ import lib.openhab as ohab
 
 '''Enable loging'''
 logging.basicConfig(level=logging.INFO)
-logfh  = logging.FileHandler(os.path.join(f'/var/log/containers','main.log'))
+#logfh  = logging.FileHandler(os.path.join(f'/var/log/containers','main.log'))
+logfh = RotatingFileHandler(f'/var/log/containers/main.log', maxBytes=2000, backupCount=10)
 logger = logging.getLogger('Main')
 logger.addHandler(logfh)
 logger.setLevel(logging.INFO)
 formatter = logging.Formatter(fmt='%(asctime)s %(levelname)-8s %(message)s',datefmt='%Y-%m-%d %H:%M:%S')
 logfh.setFormatter(formatter)
 
-def ampere_set_check(ampere_dict, solar_power_average, batterie_capacity):
+def ampere_set_check(ampere_dict, solar_power_average, batterie_capacity, battery_status):
     '''compare solar and batterie charge capacity against wallbox ampere setting'''
     for i, (A, P) in enumerate(ampere_dict.items()):
         if solar_power_average > P:
@@ -28,12 +30,15 @@ def ampere_set_check(ampere_dict, solar_power_average, batterie_capacity):
             continue
         if solar_power_average < P and i > 0:
             ampere_set = previous_item
-            return ampere_set, i 
-        elif batterie_capacity > 50:
+            return ampere_set, i
+        if battery_status is True:
             ampere_set = A
             return ampere_set, i
-        else: 
+        elif battery_status is False:
             ampere_set = 0
+            return ampere_set, i
+        else: 
+            ampere_set = battery_status
             return ampere_set, i
 
 def set_color(color):
@@ -52,6 +57,13 @@ def pv_surplus_calc(sonnen, wallbox):
             solar_power = int((sonnen.response['Production_W'])) - int(sonnen.response['Consumption_W'])
         return solar_power
 
+def check_battery(batterie_capacity):
+    if batterie_capacity > 70:
+        return True
+    if 50 <= int(batterie_capacity) <= 70:
+        return None
+    else: return False
+
 if __name__ == '__main__':
     url_wallbox = os.environ['url_wallbox']
     url_sonnen = os.environ['url_sonnen']
@@ -68,6 +80,7 @@ if __name__ == '__main__':
     
     solar_power_list = [] 
     count = 0
+    battery_status = False
     while True:
         try:
             openhab.get_items("Wallbox")
@@ -96,7 +109,7 @@ if __name__ == '__main__':
             logger.info(f"Solar_Surplus:{solar_power} Charge_Power: {wallbox.charge_power}")
 
             '''calulate average solar_power surplus and decide wallbox charge power setting under consideration of battery capacity'''
-            if count == 15:
+            if count == 10:
                 count = 0
                 wallbox.get_status()
                 if wallbox.response_code == 200:
@@ -108,7 +121,11 @@ if __name__ == '__main__':
                 solar_power_average = sum(solar_power_list) / len(solar_power_list)
                 solar_power_list = []
                 logger.info(f"Solar Power Average: {solar_power_average}W Battery Capacity {batterie_capacity}%")
-                ampere_set, i = ampere_set_check(wallbox.ampere_dict, solar_power_average, batterie_capacity)
+                battery_status = check_battery(batterie_capacity)
+                ampere_set, i = ampere_set_check(wallbox.ampere_dict, solar_power_average, batterie_capacity, battery_status)
+                if ampere_set is None:
+                    logger.info(f"battery in of 50% - 70% coninue")
+                    continue    
                 logger.info(f"Setting Index:{i} Amphere:{ampere_set}")
 
                 '''set color in Wallbox amber for not enough charging energy and green for charging possible'''
@@ -119,13 +136,15 @@ if __name__ == '__main__':
                     set_color('"%2319EA15"')
                     
                 '''set Ampere in Wallbox and start or stop with frc setting'''
+                
                 if ampere_set == 0 and wallbox.car_attach_status == 2 and wallbox.charge_staus != 1:
                     wallbox.charge_power = 0
                     wallbox.set_attr("frc", 1 )
                     if wallbox.response_code == 200:
                         logger.info(f"Stop charging {wallbox.response_code}")
                     else:
-                        logger.error(f"Stop charging {wallbox.response}")    
+                        logger.error(f"Stop charging {wallbox.response}")
+                            
                 elif ampere_set > 0 and wallbox.car_attach_status == 4:
                     wallbox.charge_power = wallbox.ampere_dict[ampere_set]
                     wallbox.set_attr("frc", 2)
