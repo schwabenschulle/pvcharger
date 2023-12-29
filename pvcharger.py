@@ -86,6 +86,7 @@ if __name__ == '__main__':
             openhab.get_items("Wallbox")
             if openhab.response['state'] == "OFF":
                 logger.info("Automation Admin disabled")
+                set_color('"%2319EA15"')
                 time.sleep(60)
                 continue
 
