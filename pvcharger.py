@@ -12,7 +12,7 @@ import lib.openhab as ohab
 '''Enable loging'''
 logging.basicConfig(level=logging.INFO)
 #logfh  = logging.FileHandler(os.path.join(f'/var/log/containers','main.log'))
-logfh = RotatingFileHandler(f'/var/log/containers/main.log', maxBytes=2000000, backupCount=10)
+logfh = RotatingFileHandler(f'/var/log/containers/main.log', maxBytes=200000, backupCount=10)
 logger = logging.getLogger('Main')
 logger.addHandler(logfh)
 logger.setLevel(logging.INFO)
