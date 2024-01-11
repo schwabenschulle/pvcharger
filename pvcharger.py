@@ -51,7 +51,7 @@ def set_color(color):
         logger.error(f"set color {color} - Response:{wallbox.response}")    
 
 def pv_surplus_calc(sonnen, wallbox):
-        if wallbox.charge_staus == 2:   
+        if wallbox.charge_staus == 0:   
             solar_power = int((sonnen.response['Production_W'])) - (int((sonnen.response['Consumption_W'])) - wallbox.charge_power)
         else:
             solar_power = int((sonnen.response['Production_W'])) - int(sonnen.response['Consumption_W'])
@@ -65,10 +65,12 @@ def check_battery(batterie_capacity):
     else: return False
 
 if __name__ == '__main__':
-    url_wallbox = os.environ['url_wallbox']
-    url_sonnen = os.environ['url_sonnen']
-    url_openhab = os.environ["url_openhab"]
-
+#    url_wallbox = os.environ['url_wallbox']
+#    url_sonnen = os.environ['url_sonnen']
+#    url_openhab = os.environ["url_openhab"]
+    url_wallbox = "http://192.168.88.18"
+    url_sonnen = "http://192.168.88.6"
+    url_openhab = "http://192.168.88.42"
     '''sn and token are needed to use cloud API. Currently not used in this code'''
     sn = ""
     token = ""
@@ -98,8 +100,13 @@ if __name__ == '__main__':
             wallbox.get_attr('frc')
             wallbox.response = json.loads(wallbox.response.content)
             wallbox.charge_staus = wallbox.response['frc'] 
-            if wallbox.charge_staus == 2:
-                wallbox.charge_power = wallbox.ampere_dict[ampere_set]
+            wallbox.get_status()
+            if wallbox.response_code == 200:
+                logger.info(f"Ampere: {wallbox.charge_ampere}A Ampere_Dict: {wallbox.ampere_dict} http_code: {wallbox.response_code}")
+            else:
+                logger.error(f"Get wallbox status {wallbox.response}_code")    
+            if wallbox.charge_staus == 0:
+                wallbox.charge_power = wallbox.ampere_dict[str(wallbox.charge_ampere)]
             else:
                 wallbox.charge_power = 0
             '''Calculate PV Surplus - Logic: PV Surplus is Solar-Inputv - house_usage - charge power  '''
@@ -148,7 +155,7 @@ if __name__ == '__main__':
                             
                 elif ampere_set > 0 and wallbox.car_attach_status == 4:
                     wallbox.charge_power = wallbox.ampere_dict[ampere_set]
-                    wallbox.set_attr("frc", 2)
+                    wallbox.set_attr("frc", 0)
                     if wallbox.response_code == 200:
                         logger.info(f"Start charging {wallbox.response_code}")
                     else:
@@ -166,4 +173,4 @@ if __name__ == '__main__':
             time.sleep(60)
 
 
-"""attach car and read charfing power """
+
