@@ -22,10 +22,17 @@ class wallbox:
         self.car_attach_status = self.status['car']
         self.charge_staus = self.status['frc']
         self.ampere_dict = {}
-        ampere_list_clp = [6,7,8,9,10,11,12,13,14,15,16]
-        for clp_item in ampere_list_clp:
-            self.ampere_dict[clp_item] = (230*clp_item)*2
-
+        self.ampere_dict = { "6":2560,
+                             "7":2980,
+                             "8":3370,
+                             "9":3780,
+                             "10":4210,
+                             "11":4640,
+                             "12":5030,
+                             "13":5460,
+                             "14":5900,
+                             "15":6290,
+                             "16":6740}
     def get_attr(self, attr):
         self.session = requests.Session()
         self.session.headers.update({'Accept': 'application/json'})
