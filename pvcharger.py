@@ -65,12 +65,9 @@ def check_battery(batterie_capacity):
     else: return False
 
 if __name__ == '__main__':
-#    url_wallbox = os.environ['url_wallbox']
-#    url_sonnen = os.environ['url_sonnen']
-#    url_openhab = os.environ["url_openhab"]
-    url_wallbox = "http://192.168.88.18"
-    url_sonnen = "http://192.168.88.6"
-    url_openhab = "http://192.168.88.42"
+    url_wallbox = os.environ['url_wallbox']
+    url_sonnen = os.environ['url_sonnen']
+    url_openhab = os.environ["url_openhab"]
     '''sn and token are needed to use cloud API. Currently not used in this code'''
     sn = ""
     token = ""
@@ -101,11 +98,7 @@ if __name__ == '__main__':
             wallbox.response = json.loads(wallbox.response.content)
             wallbox.charge_staus = wallbox.response['frc'] 
             wallbox.get_status()
-            if wallbox.response_code == 200:
-                logger.info(f"Ampere: {wallbox.charge_ampere}A Ampere_Dict: {wallbox.ampere_dict} http_code: {wallbox.response_code}")
-            else:
-                logger.error(f"Get wallbox status {wallbox.response}_code")    
-            if wallbox.charge_staus == 0:
+            if wallbox.charge_staus == 0 and wallbox.car_attach_status == 2:
                 wallbox.charge_power = wallbox.ampere_dict[str(wallbox.charge_ampere)]
             else:
                 wallbox.charge_power = 0
@@ -117,7 +110,7 @@ if __name__ == '__main__':
             logger.info(f"Solar_Surplus:{solar_power} Charge_Power: {wallbox.charge_power}")
 
             '''calulate average solar_power surplus and decide wallbox charge power setting under consideration of battery capacity'''
-            if count == 10:
+            if count == 5:
                 count = 0
                 wallbox.get_status()
                 if wallbox.response_code == 200:
@@ -167,7 +160,7 @@ if __name__ == '__main__':
                         logger.info(f"Set Amphere {wallbox.response_code}")
                     else:
                         logger.error(f"Set Amphere {wallbox.response}")    
-            time.sleep(60)    
+            time.sleep(10)    
         except Exception as e:
             logger.error(f'Fatal:{e}')
             time.sleep(60)
