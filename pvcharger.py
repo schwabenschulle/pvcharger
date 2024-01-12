@@ -110,7 +110,7 @@ if __name__ == '__main__':
             logger.info(f"Solar_Surplus:{solar_power} Charge_Power: {wallbox.charge_power}")
 
             '''calulate average solar_power surplus and decide wallbox charge power setting under consideration of battery capacity'''
-            if count == 5:
+            if count == 10:
                 count = 0
                 wallbox.get_status()
                 if wallbox.response_code == 200:
@@ -160,7 +160,7 @@ if __name__ == '__main__':
                         logger.info(f"Set Amphere {wallbox.response_code}")
                     else:
                         logger.error(f"Set Amphere {wallbox.response}")    
-            time.sleep(10)    
+            time.sleep(60)    
         except Exception as e:
             logger.error(f'Fatal:{e}')
             time.sleep(60)
