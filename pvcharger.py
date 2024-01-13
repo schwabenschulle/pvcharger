@@ -58,9 +58,9 @@ def pv_surplus_calc(sonnen, wallbox):
         return solar_power
 
 def check_battery(batterie_capacity):
-    if batterie_capacity > 70:
+    if batterie_capacity > 90:
         return True
-    if 50 <= int(batterie_capacity) <= 70:
+    if 70 <= int(batterie_capacity) <= 90:
         return None
     else: return False
 
@@ -110,7 +110,7 @@ if __name__ == '__main__':
             logger.info(f"Solar_Surplus:{solar_power} Charge_Power: {wallbox.charge_power}")
 
             '''calulate average solar_power surplus and decide wallbox charge power setting under consideration of battery capacity'''
-            if count == 10:
+            if count >= 20:
                 count = 0
                 wallbox.get_status()
                 if wallbox.response_code == 200:
@@ -125,7 +125,7 @@ if __name__ == '__main__':
                 battery_status = check_battery(batterie_capacity)
                 ampere_set, i = ampere_set_check(wallbox.ampere_dict, solar_power_average, batterie_capacity, battery_status)
                 if ampere_set is None:
-                    logger.info(f"battery in of 50% - 70% coninue")
+                    logger.info(f"battery in of 70% - 90% coninue")
                     continue    
                 logger.info(f"Setting Index:{i} Amphere:{ampere_set}")
 
@@ -160,7 +160,7 @@ if __name__ == '__main__':
                         logger.info(f"Set Amphere {wallbox.response_code}")
                     else:
                         logger.error(f"Set Amphere {wallbox.response}")    
-            time.sleep(60)    
+            time.sleep(30)    
         except Exception as e:
             logger.error(f'Fatal:{e}')
             time.sleep(60)
