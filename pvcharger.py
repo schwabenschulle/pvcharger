@@ -68,6 +68,7 @@ if __name__ == '__main__':
     url_wallbox = os.environ['url_wallbox']
     url_sonnen = os.environ['url_sonnen']
     url_openhab = os.environ["url_openhab"]
+
     '''sn and token are needed to use cloud API. Currently not used in this code'''
     sn = ""
     token = ""
@@ -110,7 +111,7 @@ if __name__ == '__main__':
             logger.info(f"Solar_Surplus:{solar_power} Charge_Power: {wallbox.charge_power}")
 
             '''calulate average solar_power surplus and decide wallbox charge power setting under consideration of battery capacity'''
-            if count >= 20:
+            if count >= 30:
                 count = 0
                 wallbox.get_status()
                 if wallbox.response_code == 200:
@@ -146,7 +147,7 @@ if __name__ == '__main__':
                     else:
                         logger.error(f"Stop charging {wallbox.response}")
                             
-                elif ampere_set > 0 and wallbox.car_attach_status == 4:
+                elif int(ampere_set) > 0 and wallbox.car_attach_status == 4:
                     wallbox.charge_power = wallbox.ampere_dict[ampere_set]
                     wallbox.set_attr("frc", 0)
                     if wallbox.response_code == 200:
@@ -154,7 +155,7 @@ if __name__ == '__main__':
                     else:
                         logger.error(f"Start charging {wallbox.response}")    
 
-                if wallbox.charge_ampere != ampere_set and ampere_set != 0: 
+                if wallbox.charge_ampere != int(ampere_set) and int(ampere_set) != 0: 
                     wallbox.set_attr("amp", ampere_set)
                     if wallbox.response_code == 200:
                         logger.info(f"Set Amphere {wallbox.response_code}")
